@@ -1,0 +1,8 @@
+streamlit
+yfinance
+qiskit
+qiskit-ibm-runtime
+numpy
+matplotlib
+pysentimiento
+pandas

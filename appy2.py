@@ -222,6 +222,7 @@ if page == "Inicio":
             moneda = info.get("currency", "USD")
             sector = info.get("sector", "Desconocido")
             try:
+    try:
     empresa = buscar_empresa(nombre_empresa)
 except Exception as e:
     print("Error al buscar la empresa:", e)
@@ -243,7 +244,6 @@ if empresa:
     print(resultado)
 else:
     print(f"Empresa '{nombre_empresa}' no encontrada.")
-
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

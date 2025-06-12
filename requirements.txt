@@ -6,3 +6,6 @@ numpy
 matplotlib
 pysentimiento
 pandas
+requests
+zipfile36
+fredpai

@@ -202,7 +202,11 @@ if page == "Inicio":
             sector = info.get("sector", "Desconocido")
             # Extrae el país real desde la info de la empresa obtenida de Yahoo Finance
 # Si 'country' no existe, devuelve 'US' como valor por defecto
-pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
+try:
+    pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
+except Exception:
+    pais = 'US'
+
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

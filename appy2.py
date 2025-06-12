@@ -207,53 +207,7 @@ def seleccionar_factores_externos(resultados_noticias, resultados_noticias_polit
 
 page = st.sidebar.radio("Navegar", ["Inicio", "Conceptos clave"])
 
-if page == "Inicio":
-    st.title("Simulación Cuántica de Valoración Empresarial")
-    ticker = st.text_input("Introduce el ticker de la empresa (ej: AMZN, AAPL, GOOGL, TSLA)")
-    if ticker.strip():
-        ticker = ticker.strip().upper()
-        try:
-            empresa = yf.Ticker(ticker)
-            info = empresa.info
-            nombre = info.get("shortName", ticker)
-            per = info.get("trailingPE", None)
-            eps = info.get("trailingEps", None)
-            precio = info.get("currentPrice", None)
-            moneda = info.get("currency", "USD")
-            sector = info.get("sector", "Desconocido")
-            try:
-    try:
-    empresa = buscar_empresa(nombre_empresa)
-except Exception as e:
-    print("Error al buscar la empresa:", e)
-    empresa = None
-
-if empresa:
-    pais_empresa = empresa["pais"]
-    factores = seleccionar_factores_externos(pais_empresa)
-    resultado = {
-        "empresa": empresa["nombre"],
-        "pais": pais_empresa,
-        "sector": empresa["sector"],
-        "inflacion": factores["inflacion"],
-        "tasas_interes": factores["tasas_interes"],
-        "crecimiento_pib": factores["crecimiento_pib"],
-        "tasa_desempleo": factores["tasa_desempleo"],
-        "consumo": factores["consumo"]
-    }
-    print(resultado)
-else:
-    print(f"Empresa '{nombre_empresa}' no encontrada.")
-
-            st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
-            st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
-            st.write(f"**PER:** {per if per else 'No disponible'}")
-            st.write(f"**EPS:** {eps if eps else 'No disponible'}")
-
-            st.subheader("Selecciona el rango de años para la tabla")
-            año_inicio = 2026
-            año_fin = 2045
-            años_seleccionados = st.slider(
+import yfinance as yf
                 "Elige el rango de años",
                 min_value=año_inicio,
                 max_value=año_fin,

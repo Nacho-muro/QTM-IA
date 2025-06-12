@@ -221,7 +221,23 @@ if page == "Inicio":
             precio = info.get("currentPrice", None)
             moneda = info.get("currency", "USD")
             sector = info.get("sector", "Desconocido")
-            pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
+            empresa = buscar_empresa(nombre_empresa)
+if empresa:
+    pais_empresa = empresa["pais"]  # <--- ESTA LÍNEA ES CLAVE
+    factores = seleccionar_factores_externos(pais_empresa)
+    resultado = {
+        "empresa": empresa["nombre"],
+        "pais": pais_empresa,  # <--- AQUÍ SALE EL PAÍS REAL DE LA EMPRESA
+        "sector": empresa["sector"],
+        "inflacion": factores["inflacion"],
+        "tasas_interes": factores["tasas_interes"],
+        "crecimiento_pib": factores["crecimiento_pib"],
+        "tasa_desempleo": factores["tasa_desempleo"],
+        "consumo": factores["consumo"]
+    }
+    print(resultado)
+else:
+    print(f"Empresa '{nombre_empresa}' no encontrada.")
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

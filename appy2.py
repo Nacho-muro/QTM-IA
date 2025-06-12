@@ -200,7 +200,9 @@ if page == "Inicio":
             precio = info.get("currentPrice", None)
             moneda = info.get("currency", "USD")
             sector = info.get("sector", "Desconocido")
-            pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
+           # Extrae el país real desde la info de la empresa obtenida de Yahoo Finance
+# Si 'country' no existe, devuelve 'US' como valor por defecto
+pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

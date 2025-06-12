@@ -194,13 +194,13 @@ if page == "Inicio":
         try:
             empresa = yf.Ticker(ticker)
             info = empresa.info
+            pais = info.get('country', 'US')  # Obtiene el país real de la empresa o 'US' si no está
             nombre = info.get("shortName", ticker)
             per = info.get("trailingPE", None)
             eps = info.get("trailingEps", None)
             precio = info.get("currentPrice", None)
             moneda = info.get("currency", "USD")
             sector = info.get("sector", "Desconocido")
-            pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

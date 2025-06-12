@@ -89,34 +89,86 @@ def obtener_desempleo_global(pais="ES"):
     except Exception:
         return None
 
+from fredapi import Fred
+
+# Tu clave FRED
+fred = Fred(api_key='744435d534825b754f0de6ca85035608')
+
 def obtener_inflacion_global(pais="ES"):
-    # Ejemplo: aquí puedes integrar una API de inflación global (por ejemplo, FRED, ECB, Trading Economics)
-    # Si no tienes clave de API, puedes dejar un placeholder
-    # Ejemplo para España (usando el INE, pero no hay API global directa)
-    # Para fines de ejemplo, devolvemos None (puedes reemplazar por una llamada real si tienes clave)
-    return None
+    if pais == "US":
+        cpi_series = fred.get_series('CPIAUCSL')
+        inflacion = (cpi_series[-1] - cpi_series[-13]) / cpi_series[-13] * 100
+        return round(inflacion, 2)
+    else:
+        return None
 
 def obtener_tasa_interes_global(pais="ES"):
-    # Ejemplo: aquí puedes integrar una API de tasas de interés (por ejemplo, FRED, ECB, Trading Economics)
-    # Si no tienes clave de API, puedes dejar un placeholder
-    # Para fines de ejemplo, devolvemos None (puedes reemplazar por una llamada real si tienes clave)
-    return None
+    if pais == "US":
+        tasa_interes = fred.get_series('FEDFUNDS')[-1]
+        return round(tasa_interes, 2)
+    else:
+        return None
+
+def obtener_pib_global(pais="ES"):
+    if pais == "US":
+        pib = fred.get_series('GDP')[-1]
+        return round(pib, 2)
+    else:
+        # Código original para otros países (Banco Mundial)
+        url = "https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.CD?downloadformat=csv"
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                    csv_file = [f for f in z.namelist() if f.startswith('API_NY.GDP.MKTP.CD_DS2_en_csv_v2')][0]
+                    with z.open(csv_file) as f:
+                        df = pd.read_csv(f, skiprows=4)
+                pib = df[df['Country Code'] == pais].iloc[:, -2:-1].values[0][0]
+                return float(pib) if not pd.isna(pib) else None
+            return None
+        except Exception:
+            return None
+
+def obtener_desempleo_global(pais="ES"):
+    if pais == "US":
+        desempleo = fred.get_series('UNRATE')[-1]
+        return round(desempleo, 2)
+    else:
+        # Código original para otros países (Banco Mundial)
+        url = "https://api.worldbank.org/v2/en/indicator/SL.UEM.TOTL.ZS?downloadformat=csv"
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                    csv_file = [f for f in z.namelist() if f.startswith('API_SL.UEM.TOTL.ZS_DS2_en_csv_v2')][0]
+                    with z.open(csv_file) as f:
+                        df = pd.read_csv(f, skiprows=4)
+                desempleo = df[df['Country Code'] == pais].iloc[:, -2:-1].values[0][0]
+                return float(desempleo) if not pd.isna(desempleo) else None
+            return None
+        except Exception:
+            return None
 
 def obtener_consumo_global(pais="ES"):
-    # Ejemplo: aquí puedes integrar una API de consumo (por ejemplo, Banco Mundial NE.CON.PRVT.CD)
-    url = "https://api.worldbank.org/v2/en/indicator/NE.CON.PRVT.CD?downloadformat=csv"
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-                csv_file = [f for f in z.namelist() if f.startswith('API_NE.CON.PRVT.CD_DS2_en_csv_v2')][0]
-                with z.open(csv_file) as f:
-                    df = pd.read_csv(f, skiprows=4)
-            consumo = df[df['Country Code'] == pais].iloc[:, -2:-1].values[0][0]
-            return float(consumo) if not pd.isna(consumo) else None
-        return None
-    except Exception:
-        return None
+    if pais == "US":
+        consumo = fred.get_series('PCE')[-1]
+        return round(consumo, 2)
+    else:
+        # Código original para otros países (Banco Mundial)
+        url = "https://api.worldbank.org/v2/en/indicator/NE.CON.PRVT.CD?downloadformat=csv"
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                    csv_file = [f for f in z.namelist() if f.startswith('API_NE.CON.PRVT.CD_DS2_en_csv_v2')][0]
+                    with z.open(csv_file) as f:
+                        df = pd.read_csv(f, skiprows=4)
+                consumo = df[df['Country Code'] == pais].iloc[:, -2:-1].values[0][0]
+                return float(consumo) if not pd.isna(consumo) else None
+            return None
+        except Exception:
+            return None
+
 
 def obtener_estabilidad_politica(resultados_noticias_politicas):
     if not resultados_noticias_politicas:

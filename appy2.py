@@ -234,11 +234,11 @@ if ticker:
         st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
         st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
-            st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
-            st.write(f"**PER:** {per if per else 'No disponible'}")
-            st.write(f"**EPS:** {eps if eps else 'No disponible'}")
+        st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
+        st.write(f"**PER:** {per if per else 'No disponible'}")
+        st.write(f"**EPS:** {eps if eps else 'No disponible'}")
 
-            st.subheader("Selecciona el rango de años para la tabla")
+        st.subheader("Selecciona el rango de años para la tabla")
             año_inicio = 2026
             año_fin = 2045
             años_seleccionados = st.slider(

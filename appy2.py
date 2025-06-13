@@ -192,7 +192,9 @@ if page == "Inicio":
     if ticker.strip():
         ticker = ticker.strip().upper()
         try:
-            def obtener_datos_finnhub(ticker):
+            import requests
+
+def obtener_datos_finnhub(ticker):
     api_key = "d163tb9r01qhvkj61lr0d163tb9r01qhvkj61lrg"
     # Perfil de la empresa (incluye país, nombre, sector, moneda)
     url_profile = f"https://finnhub.io/api/v1/stock/profile2?symbol={ticker}&token={api_key}"

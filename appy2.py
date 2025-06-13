@@ -1,37 +1,35 @@
-from pysentimiento import create_analyzer
 import streamlit as st
-import requests
+import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import requests
 import zipfile
 import io
+from pysentimiento import create_analyzer
 
-# Claves API
-NEWSAPI_KEY = "a9fe25c3e9364dd18f82349010fb28f7"
-FINNHUB_API_KEY = "d163tb9r01qhvkj61lr0d163tb9r01qhvkj61lrg"
+# Configura aquí tu clave de NewsAPI
+NEWSAPI_KEY = "a9fe25c3e9364dd18f82349010fb28f7"  # Reemplázalo por tu clave real
 
-# Analizador
+# Inicializa el analizador de sentimiento
 analyzer = create_analyzer(task="sentiment", lang="es")
 
-def obtener_datos_finnhub(ticker):
-    url_profile = f"https://finnhub.io/api/v1/stock/profile2?symbol={ticker}&token={FINNHUB_API_KEY}"
-    url_fundamental = f"https://finnhub.io/api/v1/stock/metric?symbol={ticker}&metric=all&token={FINNHUB_API_KEY}"
-    url_quote = f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={FINNHUB_API_KEY}"
-
-    profile = requests.get(url_profile).json()
-    fundamental = requests.get(url_fundamental).json()
-    quote = requests.get(url_quote).json()
-
-    pais = profile.get('country', 'Desconocido')
-    nombre = profile.get('name', ticker)
-    sector = profile.get('finnhubIndustry', 'Desconocido')
-    moneda = profile.get('currency', 'USD')
-    per = fundamental.get('metric', {}).get('peNormalizedAnnual', None)
-    eps = fundamental.get('metric', {}).get('epsNormalizedAnnual', None)
-    precio = quote.get('c', None)
-
-    return pais, nombre, per, eps, precio, moneda, sector
+def simular_valores_futuros(precio, eps, año_inicio, año_fin, ajuste):
+    años = range(año_inicio, año_fin + 1)
+    datos = []
+    for año in años:
+        precio_simulado = precio * (ajuste ** (año - 2025)) if precio else np.nan
+        eps_simulado = eps * (ajuste ** (año - 2025)) if eps else np.nan
+        per_simulado = precio_simulado / eps_simulado if precio_simulado and eps_simulado else np.nan
+        valor_intrinseco_simulado = precio_simulado * 0.9  # Ejemplo simplificado
+        datos.append({
+            "Año": año,
+            "Precio futuro simulado": precio_simulado,
+            "EPS futuro simulado": eps_simulado,
+            "PER futuro simulado": per_simulado,
+            "Valor intrínseco futuro simulado": valor_intrinseco_simulado
+        })
+    return pd.DataFrame(datos)
 
 def obtener_noticias_reales(ticker, palabras_clave_politicas=None):
     url = f"https://newsapi.org/v2/everything?q={ticker}&apiKey={NEWSAPI_KEY}"
@@ -163,7 +161,15 @@ if page == "Inicio":
     if ticker.strip():
         ticker = ticker.strip().upper()
         try:
-            pais, nombre, per, eps, precio, moneda, sector = obtener_datos_finnhub(ticker)
+            empresa = yf.Ticker(ticker)
+            info = empresa.info
+            nombre = info.get("shortName", ticker)
+            per = info.get("trailingPE", None)
+            eps = info.get("trailingEps", None)
+            precio = info.get("currentPrice", None)
+            moneda = info.get("currency", "USD")
+            sector = info.get("sector", "Desconocido")
+            pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

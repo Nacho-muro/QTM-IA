@@ -191,7 +191,7 @@ if page == "Inicio":
     ticker = st.text_input("Introduce el ticker de la empresa (ej: AMZN, AAPL, GOOGL, TSLA)")
     if ticker.strip():
         ticker = ticker.strip().upper()
-        try:
+        
            import requests
 import streamlit as st
 

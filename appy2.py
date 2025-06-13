@@ -233,7 +233,7 @@ if ticker:
     except Exception as e:
         st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
-            st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
+        st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
             st.write(f"**PER:** {per if per else 'No disponible'}")
             st.write(f"**EPS:** {eps if eps else 'No disponible'}")

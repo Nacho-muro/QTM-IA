@@ -239,15 +239,15 @@ if ticker:
         st.write(f"**EPS:** {eps if eps else 'No disponible'}")
 
         st.subheader("Selecciona el rango de años para la tabla")
-            año_inicio = 2026
-            año_fin = 2045
-            años_seleccionados = st.slider(
-                "Elige el rango de años",
-                min_value=año_inicio,
-                max_value=año_fin,
-                value=(año_inicio, año_fin)
-            )
-            años_tabla = list(range(años_seleccionados[0], años_seleccionados[1] + 1))
+        año_inicio = 2026
+        año_fin = 2045
+        años_seleccionados = st.slider(
+            "Elige el rango de años",
+            min_value=año_inicio,
+            max_value=año_fin,
+            value=(año_inicio, año_fin)
+        )
+        años_tabla = list(range(años_seleccionados[0], años_seleccionados[1] + 1))
 
             # --- INTEGRACIÓN IA: Filtrado y ponderación de factores externos reales ---
             palabras_clave_politicas = ['gobierno', 'política', 'regulación', 'ley', 'ministro']

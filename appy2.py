@@ -192,7 +192,8 @@ if page == "Inicio":
     if ticker.strip():
         ticker = ticker.strip().upper()
         try:
-            import requests
+           import requests
+import streamlit as st
 
 def obtener_datos_finnhub(ticker):
     api_key = "d163tb9r01qhvkj61lr0d163tb9r01qhvkj61lrg"
@@ -218,20 +219,19 @@ def obtener_datos_finnhub(ticker):
     precio = quote.get('c', None)  # 'c' es el precio actual
 
     return pais, nombre, per, eps, precio, moneda, sector
-except Exception as e:
-    st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
-# --- USO EN TU APP STREAMLIT ---
-try:
-    pais, nombre, per, eps, precio, moneda, sector = obtener_datos_finnhub(ticker)
-    st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
-    st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
-    st.write(f"**PER:** {per if per else 'No disponible'}")
-    st.write(f"**EPS:** {eps if eps else 'No disponible'}")
-    # ... el resto de tu código sigue igual ...
-except Exception as e:
-    st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
+# Supón que 'ticker' es la variable con el símbolo de la empresa a buscar
+ticker = st.text_input("Introduce el ticker de la empresa:", value="AAPL")
 
+if ticker:
+    try:
+        pais, nombre, per, eps, precio, moneda, sector = obtener_datos_finnhub(ticker)
+        st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
+        st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
+        st.write(f"**PER:** {per if per else 'No disponible'}")
+        st.write(f"**EPS:** {eps if eps else 'No disponible'}")
+    except Exception as e:
+        st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

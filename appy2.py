@@ -250,53 +250,53 @@ if ticker:
         años_tabla = list(range(años_seleccionados[0], años_seleccionados[1] + 1))
 
             # --- INTEGRACIÓN IA: Filtrado y ponderación de factores externos reales ---
-            palabras_clave_politicas = ['gobierno', 'política', 'regulación', 'ley', 'ministro']
-            noticias_reales, noticias_politicas = obtener_noticias_reales(ticker, palabras_clave_politicas)
-            resultados_noticias = filtrar_noticias(noticias_reales)
-            resultados_noticias_politicas = filtrar_noticias(noticias_politicas)
-            factores = seleccionar_factores_externos(resultados_noticias, resultados_noticias_politicas, pais)
+        palabras_clave_politicas = ['gobierno', 'política', 'regulación', 'ley', 'ministro']
+        noticias_reales, noticias_politicas = obtener_noticias_reales(ticker, palabras_clave_politicas)
+        resultados_noticias = filtrar_noticias(noticias_reales)
+        resultados_noticias_politicas = filtrar_noticias(noticias_politicas)
+        factores = seleccionar_factores_externos(resultados_noticias, resultados_noticias_politicas, pais)
 
-            st.subheader("Factores externos seleccionados y ponderados (valores reales)")
-            st.write(factores)
+        st.subheader("Factores externos seleccionados y ponderados (valores reales)")
+        st.write(factores)
 
-            st.subheader("Noticias relevantes y su sentimiento")
-            st.write(pd.DataFrame(resultados_noticias))
+        st.subheader("Noticias relevantes y su sentimiento")
+        st.write(pd.DataFrame(resultados_noticias))
 
-            st.subheader("Noticias políticas y su sentimiento")
-            st.write(pd.DataFrame(resultados_noticias_politicas))
+        st.subheader("Noticias políticas y su sentimiento")
+        st.write(pd.DataFrame(resultados_noticias_politicas))
 
             # Ajuste según factores externos (el sentimiento de noticias influye en el ajuste)
-            ajuste_base = 1.02
-            ajuste_final = ajuste_base + (factores['sentimiento_noticias'] * 0.01)
-            st.write(f"**Ajuste final aplicado:** {ajuste_final:.4f}")
+        ajuste_base = 1.02
+        ajuste_final = ajuste_base + (factores['sentimiento_noticias'] * 0.01)
+        st.write(f"**Ajuste final aplicado:** {ajuste_final:.4f}")
 
-            df_base = simular_valores_futuros(precio, eps, año_inicio, año_fin, ajuste_final)
-            df_tabla = df_base[df_base["Año"].isin(años_tabla)]
+        df_base = simular_valores_futuros(precio, eps, año_inicio, año_fin, ajuste_final)
+        df_tabla = df_base[df_base["Año"].isin(años_tabla)]
 
-            st.subheader("Valores simulados para los años seleccionados (escenario base)")
-            st.dataframe(df_tabla.style.format({
-                "Precio futuro simulado": "{:.2f}",
-                "EPS futuro simulado": "{:.2f}",
-                "PER futuro simulado": "{:.2f}",
-                "Valor intrínseco futuro simulado": "{:.2f}"
-            }))
+        st.subheader("Valores simulados para los años seleccionados (escenario base)")
+        st.dataframe(df_tabla.style.format({
+            "Precio futuro simulado": "{:.2f}",
+            "EPS futuro simulado": "{:.2f}",
+            "PER futuro simulado": "{:.2f}",
+            "Valor intrínseco futuro simulado": "{:.2f}"
+        }))
 
-            st.subheader("Rendimiento esperado")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            if precio:
-                ax.plot(df_base["Año"], df_base["Precio futuro simulado"], 'b-', label="Precio futuro simulado")
-                ax.plot(df_base["Año"], df_base["Valor intrínseco futuro simulado"], 'g-', label="Valor intrínseco futuro simulado")
-            if eps:
-                ax.plot(df_base["Año"], df_base["EPS futuro simulado"], 'r:', label="EPS futuro simulado")
-            ax.set_xlabel("Año")
-            ax.set_ylabel("Valor")
-            ax.set_title(f"Rendimiento esperado para {nombre} ({ticker})")
-            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-            ax.grid(True)
-            st.pyplot(fig)
+        st.subheader("Rendimiento esperado")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        if precio:
+            ax.plot(df_base["Año"], df_base["Precio futuro simulado"], 'b-', label="Precio futuro simulado")
+            ax.plot(df_base["Año"], df_base["Valor intrínseco futuro simulado"], 'g-', label="Valor intrínseco futuro simulado")
+        if eps:
+            ax.plot(df_base["Año"], df_base["EPS futuro simulado"], 'r:', label="EPS futuro simulado")
+        ax.set_xlabel("Año")
+        ax.set_ylabel("Valor")
+        ax.set_title(f"Rendimiento esperado para {nombre} ({ticker})")
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax.grid(True)
+        st.pyplot(fig)
 
-        except Exception as e:
-            st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
+    except Exception as e:
+        st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
 elif page == "Conceptos clave":
     st.title("Conceptos clave del mercado de valores")

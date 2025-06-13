@@ -192,15 +192,42 @@ if page == "Inicio":
     if ticker.strip():
         ticker = ticker.strip().upper()
         try:
-            empresa = yf.Ticker(ticker)
-            info = empresa.info
-            pais = info.get('country', 'US')  # Obtiene el país real de la empresa o 'US' si no está
-            nombre = info.get("shortName", ticker)
-            per = info.get("trailingPE", None)
-            eps = info.get("trailingEps", None)
-            precio = info.get("currentPrice", None)
-            moneda = info.get("currency", "USD")
-            sector = info.get("sector", "Desconocido")
+            def obtener_datos_finnhub(ticker):
+    api_key = "d163tb9r01qhvkj61lr0d163tb9r01qhvkj61lrg"
+    # Perfil de la empresa (incluye país, nombre, sector, moneda)
+    url_profile = f"https://finnhub.io/api/v1/stock/profile2?symbol={ticker}&token={api_key}"
+    # Datos fundamentales (incluye PER, EPS)
+    url_fundamental = f"https://finnhub.io/api/v1/stock/metric?symbol={ticker}&metric=all&token={api_key}"
+    # Cotización actual
+    url_quote = f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={api_key}"
+
+    profile = requests.get(url_profile).json()
+    fundamental = requests.get(url_fundamental).json()
+    quote = requests.get(url_quote).json()
+
+    pais = profile.get('country', 'Desconocido')
+    nombre = profile.get('name', ticker)
+    sector = profile.get('finnhubIndustry', 'Desconocido')
+    moneda = profile.get('currency', 'USD')
+
+    # Finnhub devuelve los fundamentales en 'metric'
+    per = fundamental.get('metric', {}).get('peNormalizedAnnual', None)
+    eps = fundamental.get('metric', {}).get('epsNormalizedAnnual', None)
+    precio = quote.get('c', None)  # 'c' es el precio actual
+
+    return pais, nombre, per, eps, precio, moneda, sector
+
+# --- USO EN TU APP STREAMLIT ---
+try:
+    pais, nombre, per, eps, precio, moneda, sector = obtener_datos_finnhub(ticker)
+    st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
+    st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
+    st.write(f"**PER:** {per if per else 'No disponible'}")
+    st.write(f"**EPS:** {eps if eps else 'No disponible'}")
+    # ... el resto de tu código sigue igual ...
+except Exception as e:
+    st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
+
 
             st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")

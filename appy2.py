@@ -192,7 +192,7 @@ if page == "Inicio":
     if ticker.strip():
         ticker = ticker.strip().upper()
         
-           import requests
+import requests
 import streamlit as st
 
 def obtener_datos_finnhub(ticker):

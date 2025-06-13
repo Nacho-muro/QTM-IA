@@ -1,35 +1,37 @@
+from pysentimiento import create_analyzer
 import streamlit as st
-import yfinance as yf
+import requests
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import requests
 import zipfile
 import io
-from pysentimiento import create_analyzer
 
-# Configura aquí tu clave de NewsAPI
-NEWSAPI_KEY = "a9fe25c3e9364dd18f82349010fb28f7"  # Reemplázalo por tu clave real
+# Claves API
+NEWSAPI_KEY = "a9fe25c3e9364dd18f82349010fb28f7"
+FINNHUB_API_KEY = "d163tb9r01qhvkj61lr0d163tb9r01qhvkj61lrg"
 
-# Inicializa el analizador de sentimiento
+# Analizador
 analyzer = create_analyzer(task="sentiment", lang="es")
 
-def simular_valores_futuros(precio, eps, año_inicio, año_fin, ajuste):
-    años = range(año_inicio, año_fin + 1)
-    datos = []
-    for año in años:
-        precio_simulado = precio * (ajuste ** (año - 2025)) if precio else np.nan
-        eps_simulado = eps * (ajuste ** (año - 2025)) if eps else np.nan
-        per_simulado = precio_simulado / eps_simulado if precio_simulado and eps_simulado else np.nan
-        valor_intrinseco_simulado = precio_simulado * 0.9  # Ejemplo simplificado
-        datos.append({
-            "Año": año,
-            "Precio futuro simulado": precio_simulado,
-            "EPS futuro simulado": eps_simulado,
-            "PER futuro simulado": per_simulado,
-            "Valor intrínseco futuro simulado": valor_intrinseco_simulado
-        })
-    return pd.DataFrame(datos)
+def obtener_datos_finnhub(ticker):
+    url_profile = f"https://finnhub.io/api/v1/stock/profile2?symbol={ticker}&token={FINNHUB_API_KEY}"
+    url_fundamental = f"https://finnhub.io/api/v1/stock/metric?symbol={ticker}&metric=all&token={FINNHUB_API_KEY}"
+    url_quote = f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={FINNHUB_API_KEY}"
+
+    profile = requests.get(url_profile).json()
+    fundamental = requests.get(url_fundamental).json()
+    quote = requests.get(url_quote).json()
+
+    pais = profile.get('country', 'Desconocido')
+    nombre = profile.get('name', ticker)
+    sector = profile.get('finnhubIndustry', 'Desconocido')
+    moneda = profile.get('currency', 'USD')
+    per = fundamental.get('metric', {}).get('peNormalizedAnnual', None)
+    eps = fundamental.get('metric', {}).get('epsNormalizedAnnual', None)
+    precio = quote.get('c', None)
+
+    return pais, nombre, per, eps, precio, moneda, sector
 
 def obtener_noticias_reales(ticker, palabras_clave_politicas=None):
     url = f"https://newsapi.org/v2/everything?q={ticker}&apiKey={NEWSAPI_KEY}"
@@ -89,65 +91,34 @@ def obtener_desempleo_global(pais="ES"):
     except Exception:
         return None
 
-from fredapi import Fred
-
-# Tu clave FRED
-fred = Fred(api_key='744435d534825b754f0de6ca85035608')
-
 def obtener_inflacion_global(pais="ES"):
-    if pais == "US":
-        try:
-            cpi_series = fred.get_series('CPIAUCSL')
-            inflacion = (cpi_series[-1] - cpi_series[-13]) / cpi_series[-13] * 100
-            return round(inflacion, 2)
-        except Exception:
-            return None
-    else:
-        return None
+    # Ejemplo: aquí puedes integrar una API de inflación global (por ejemplo, FRED, ECB, Trading Economics)
+    # Si no tienes clave de API, puedes dejar un placeholder
+    # Ejemplo para España (usando el INE, pero no hay API global directa)
+    # Para fines de ejemplo, devolvemos None (puedes reemplazar por una llamada real si tienes clave)
+    return None
 
 def obtener_tasa_interes_global(pais="ES"):
-    if pais == "US":
-        try:
-            tasa_interes = fred.get_series('FEDFUNDS')[-1]
-            return round(tasa_interes, 2)
-        except Exception:
-            return None
-    else:
-        return None
-
-def obtener_pib_global(pais="ES"):
-    if pais == "US":
-        try:
-            pib = fred.get_series('GDP')[-1]
-            return round(pib, 2)
-        except Exception:
-            return None
-    else:
-        # Tu código original para otros países sigue aquí
-        return None
-
-def obtener_desempleo_global(pais="ES"):
-    if pais == "US":
-        try:
-            desempleo = fred.get_series('UNRATE')[-1]
-            return round(desempleo, 2)
-        except Exception:
-            return None
-    else:
-        # Tu código original para otros países sigue aquí
-        return None
+    # Ejemplo: aquí puedes integrar una API de tasas de interés (por ejemplo, FRED, ECB, Trading Economics)
+    # Si no tienes clave de API, puedes dejar un placeholder
+    # Para fines de ejemplo, devolvemos None (puedes reemplazar por una llamada real si tienes clave)
+    return None
 
 def obtener_consumo_global(pais="ES"):
-    if pais == "US":
-        try:
-            consumo = fred.get_series('PCE')[-1]
-            return round(consumo, 2)
-        except Exception:
-            return None
-    else:
-        # Tu código original para otros países sigue aquí
+    # Ejemplo: aquí puedes integrar una API de consumo (por ejemplo, Banco Mundial NE.CON.PRVT.CD)
+    url = "https://api.worldbank.org/v2/en/indicator/NE.CON.PRVT.CD?downloadformat=csv"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                csv_file = [f for f in z.namelist() if f.startswith('API_NE.CON.PRVT.CD_DS2_en_csv_v2')][0]
+                with z.open(csv_file) as f:
+                    df = pd.read_csv(f, skiprows=4)
+            consumo = df[df['Country Code'] == pais].iloc[:, -2:-1].values[0][0]
+            return float(consumo) if not pd.isna(consumo) else None
         return None
-
+    except Exception:
+        return None
 
 def obtener_estabilidad_politica(resultados_noticias_politicas):
     if not resultados_noticias_politicas:
@@ -191,112 +162,73 @@ if page == "Inicio":
     ticker = st.text_input("Introduce el ticker de la empresa (ej: AMZN, AAPL, GOOGL, TSLA)")
     if ticker.strip():
         ticker = ticker.strip().upper()
-        
-import requests
-import streamlit as st
+        try:
+            pais, nombre, per, eps, precio, moneda, sector = obtener_datos_finnhub(ticker)
 
-def obtener_datos_finnhub(ticker):
-    api_key = "d163tb9r01qhvkj61lr0d163tb9r01qhvkj61lrg"
-    # Perfil de la empresa (incluye país, nombre, sector, moneda)
-    url_profile = f"https://finnhub.io/api/v1/stock/profile2?symbol={ticker}&token={api_key}"
-    # Datos fundamentales (incluye PER, EPS)
-    url_fundamental = f"https://finnhub.io/api/v1/stock/metric?symbol={ticker}&metric=all&token={api_key}"
-    # Cotización actual
-    url_quote = f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={api_key}"
+            st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
+            st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
+            st.write(f"**PER:** {per if per else 'No disponible'}")
+            st.write(f"**EPS:** {eps if eps else 'No disponible'}")
 
-    profile = requests.get(url_profile).json()
-    fundamental = requests.get(url_fundamental).json()
-    quote = requests.get(url_quote).json()
-
-    pais = profile.get('country', 'Desconocido')
-    nombre = profile.get('name', ticker)
-    sector = profile.get('finnhubIndustry', 'Desconocido')
-    moneda = profile.get('currency', 'USD')
-
-    # Finnhub devuelve los fundamentales en 'metric'
-    per = fundamental.get('metric', {}).get('peNormalizedAnnual', None)
-    eps = fundamental.get('metric', {}).get('epsNormalizedAnnual', None)
-    precio = quote.get('c', None)  # 'c' es el precio actual
-
-    return pais, nombre, per, eps, precio, moneda, sector
-
-# Supón que 'ticker' es la variable con el símbolo de la empresa a buscar
-ticker = st.text_input("Introduce el ticker de la empresa:", value="AAPL")
-
-if ticker:
-    try:
-        pais, nombre, per, eps, precio, moneda, sector = obtener_datos_finnhub(ticker)
-        st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
-        st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
-        st.write(f"**PER:** {per if per else 'No disponible'}")
-        st.write(f"**EPS:** {eps if eps else 'No disponible'}")
-    except Exception as e:
-        st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
-
-        st.subheader(f"{nombre} ({ticker}) - Sector: {sector} - País: {pais}")
-        st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
-        st.write(f"**PER:** {per if per else 'No disponible'}")
-        st.write(f"**EPS:** {eps if eps else 'No disponible'}")
-
-        st.subheader("Selecciona el rango de años para la tabla")
-        año_inicio = 2026
-        año_fin = 2045
-        años_seleccionados = st.slider(
-            "Elige el rango de años",
-            min_value=año_inicio,
-            max_value=año_fin,
-            value=(año_inicio, año_fin)
-        )
-        años_tabla = list(range(años_seleccionados[0], años_seleccionados[1] + 1))
+            st.subheader("Selecciona el rango de años para la tabla")
+            año_inicio = 2026
+            año_fin = 2045
+            años_seleccionados = st.slider(
+                "Elige el rango de años",
+                min_value=año_inicio,
+                max_value=año_fin,
+                value=(año_inicio, año_fin)
+            )
+            años_tabla = list(range(años_seleccionados[0], años_seleccionados[1] + 1))
 
             # --- INTEGRACIÓN IA: Filtrado y ponderación de factores externos reales ---
-        palabras_clave_politicas = ['gobierno', 'política', 'regulación', 'ley', 'ministro']
-        noticias_reales, noticias_politicas = obtener_noticias_reales(ticker, palabras_clave_politicas)
-        resultados_noticias = filtrar_noticias(noticias_reales)
-        resultados_noticias_politicas = filtrar_noticias(noticias_politicas)
-        factores = seleccionar_factores_externos(resultados_noticias, resultados_noticias_politicas, pais)
+            palabras_clave_politicas = ['gobierno', 'política', 'regulación', 'ley', 'ministro']
+            noticias_reales, noticias_politicas = obtener_noticias_reales(ticker, palabras_clave_politicas)
+            resultados_noticias = filtrar_noticias(noticias_reales)
+            resultados_noticias_politicas = filtrar_noticias(noticias_politicas)
+            factores = seleccionar_factores_externos(resultados_noticias, resultados_noticias_politicas, pais)
 
-        st.subheader("Factores externos seleccionados y ponderados (valores reales)")
-        st.write(factores)
+            st.subheader("Factores externos seleccionados y ponderados (valores reales)")
+            st.write(factores)
 
-        st.subheader("Noticias relevantes y su sentimiento")
-        st.write(pd.DataFrame(resultados_noticias))
+            st.subheader("Noticias relevantes y su sentimiento")
+            st.write(pd.DataFrame(resultados_noticias))
 
-        st.subheader("Noticias políticas y su sentimiento")
-        st.write(pd.DataFrame(resultados_noticias_politicas))
+            st.subheader("Noticias políticas y su sentimiento")
+            st.write(pd.DataFrame(resultados_noticias_politicas))
 
             # Ajuste según factores externos (el sentimiento de noticias influye en el ajuste)
-        ajuste_base = 1.02
-        ajuste_final = ajuste_base + (factores['sentimiento_noticias'] * 0.01)
-        st.write(f"**Ajuste final aplicado:** {ajuste_final:.4f}")
+            ajuste_base = 1.02
+            ajuste_final = ajuste_base + (factores['sentimiento_noticias'] * 0.01)
+            st.write(f"**Ajuste final aplicado:** {ajuste_final:.4f}")
 
-        df_base = simular_valores_futuros(precio, eps, año_inicio, año_fin, ajuste_final)
-        df_tabla = df_base[df_base["Año"].isin(años_tabla)]
+            df_base = simular_valores_futuros(precio, eps, año_inicio, año_fin, ajuste_final)
+            df_tabla = df_base[df_base["Año"].isin(años_tabla)]
 
-        st.subheader("Valores simulados para los años seleccionados (escenario base)")
-        st.dataframe(df_tabla.style.format({
-            "Precio futuro simulado": "{:.2f}",
-            "EPS futuro simulado": "{:.2f}",
-            "PER futuro simulado": "{:.2f}",
-            "Valor intrínseco futuro simulado": "{:.2f}"
-        }))
+            st.subheader("Valores simulados para los años seleccionados (escenario base)")
+            st.dataframe(df_tabla.style.format({
+                "Precio futuro simulado": "{:.2f}",
+                "EPS futuro simulado": "{:.2f}",
+                "PER futuro simulado": "{:.2f}",
+                "Valor intrínseco futuro simulado": "{:.2f}"
+            }))
 
-        st.subheader("Rendimiento esperado")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        if precio:
-            ax.plot(df_base["Año"], df_base["Precio futuro simulado"], 'b-', label="Precio futuro simulado")
-            ax.plot(df_base["Año"], df_base["Valor intrínseco futuro simulado"], 'g-', label="Valor intrínseco futuro simulado")
-        if eps:
-            ax.plot(df_base["Año"], df_base["EPS futuro simulado"], 'r:', label="EPS futuro simulado")
-        ax.set_xlabel("Año")
-        ax.set_ylabel("Valor")
-        ax.set_title(f"Rendimiento esperado para {nombre} ({ticker})")
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-        ax.grid(True)
-        st.pyplot(fig)
+            st.subheader("Rendimiento esperado")
+            fig, ax = plt.subplots(figsize=(10, 6))
+            if precio:
+                ax.plot(df_base["Año"], df_base["Precio futuro simulado"], 'b-', label="Precio futuro simulado")
+                ax.plot(df_base["Año"], df_base["Valor intrínseco futuro simulado"], 'g-', label="Valor intrínseco futuro simulado")
+            if eps:
+                ax.plot(df_base["Año"], df_base["EPS futuro simulado"], 'r:', label="EPS futuro simulado")
+            ax.set_xlabel("Año")
+            ax.set_ylabel("Valor")
+            ax.set_title(f"Rendimiento esperado para {nombre} ({ticker})")
+            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            ax.grid(True)
+            st.pyplot(fig)
 
-    except Exception as e:
-        st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
+        except Exception as e:
+            st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
 elif page == "Conceptos clave":
     st.title("Conceptos clave del mercado de valores")

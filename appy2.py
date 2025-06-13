@@ -218,6 +218,8 @@ def obtener_datos_finnhub(ticker):
     precio = quote.get('c', None)  # 'c' es el precio actual
 
     return pais, nombre, per, eps, precio, moneda, sector
+except Exception as e:
+    st.error(f"No se pudo obtener información o ejecutar la simulación: {e}")
 
 # --- USO EN TU APP STREAMLIT ---
 try:

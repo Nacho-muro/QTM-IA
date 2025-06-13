@@ -170,8 +170,6 @@ if page == "Inicio":
             moneda = info.get("currency", "USD")
             sector = info.get("sector", "Desconocido")
             pais = info.get('country', 'US')  # Obtiene el país de la empresa (por defecto 'US')
-        except Exception as e:
-            st.error(f"Error: {e}")
             
             st.subheader(f"{nombre} ({}) - Sector: {sector} - País: {pais}")
             st.write(f"**Precio actual:** {precio} {moneda}" if precio else "Precio actual: No disponible")
